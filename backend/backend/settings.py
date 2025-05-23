@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'account',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'decouple'
 ]
 
 MIDDLEWARE = [
@@ -180,9 +181,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_USER_HOST')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_USER_PASSWORD')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+
+EMAIL_HOST_USER = 'iethostelweb@gmail.com'
+EMAIL_HOST_PASSWORD = 'mcwu wfax tycq hicw'
+
+
+# EMAIL_HOST_USER = os.environ.get('EMAIL_USER_HOST')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_USER_PASSWORD')
+# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+# SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",

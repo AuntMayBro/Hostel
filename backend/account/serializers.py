@@ -83,3 +83,8 @@ class UserPasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError("Token is invalid or has expired.")
         except User.DoesNotExist:
             raise serializers.ValidationError("User not found.")
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    code = serializers.CharField(required=True, max_length=6) # Assuming a 6-digit code, adjust max_length as needed
