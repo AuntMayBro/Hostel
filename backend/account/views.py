@@ -21,12 +21,20 @@ def get_tokens_for_user(user):
 # Create your views here.
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
-    # renderer_classes = [UserRenderer]
-    def post(self , request ,format = None):
-        serializer = UserRegistrationSerializer(data = request.data)
-        user = serializer.save()
+
+    def post(self, request, format=None):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True) 
+        user = serializer.save() 
         token = get_tokens_for_user(user)
-        return Response({'token':token,'msg':'Resistration SuccesFull'},status = status.HTTP_201_CREATED)
+
+        return Response(
+            {
+                'token': token,
+                'msg': 'Registration Successful'
+            },
+            status=status.HTTP_201_CREATED
+        )
         
 
 class UserLoginView(generics.GenericAPIView):
