@@ -10,9 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 from datetime import timedelta
+# import environ
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -176,27 +179,29 @@ SIMPLE_JWT = {
 
 PASSWORD_RESET_TIMEOUT = 900
 
+# Load environment variables
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+
+DEBUG = os.environ.get('DEBUG', 'False') == 'False'
+
 #email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'iethostelweb@gmail.com'
-EMAIL_HOST_PASSWORD = 'mcwu wfax tycq hicw'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-
-# EMAIL_HOST_USER = os.environ.get('EMAIL_USER_HOST')
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_USER_PASSWORD')
-# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
-# SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
+# print("EMAIL_HOST_USER:", os.environ.get('EMAIL_HOST_USER'))
+# print("EMAIL_HOST_PASSWORD:", os.environ.get('EMAIL_HOST_PASSWORD'))
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
 ]
-
 
 
 # Session settings 

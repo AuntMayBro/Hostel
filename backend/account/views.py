@@ -66,12 +66,6 @@ class UserRegistrationView(generics.CreateAPIView):
         recipient_list = [user.email]
 
         try:
-            print(f"DEBUG: EMAIL_HOST_USER from settings: {settings.EMAIL_HOST_USER}")
-            print(f"DEBUG: EMAIL_HOST_PASSWORD from settings: {settings.EMAIL_HOST_PASSWORD[:4]}... (truncated)") # Truncate for security
-            print(f"DEBUG: EMAIL_HOST from settings: {settings.EMAIL_HOST}")
-            print(f"DEBUG: EMAIL_PORT from settings: {settings.EMAIL_PORT}")
-            print(f"DEBUG: EMAIL_USE_TLS from settings: {settings.EMAIL_USE_TLS}")
-
             send_mail(subject, message, email_from, recipient_list, fail_silently=False)
             print(f"DEBUG: Email attempted to send successfully to {user.email}")
         except smtplib.SMTPException as e:

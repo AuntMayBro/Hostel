@@ -2,9 +2,8 @@
 
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-# import uuid # No longer needed if using CharField for verification code
-from django.utils import timezone # ADD THIS IMPORT
-from datetime import timedelta # ADD THIS IMPORT
+from django.utils import timezone 
+from datetime import timedelta
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -42,7 +41,7 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    verification_code = models.CharField(max_length=6, blank=True, null=True) # For 6-digit numeric code
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
     verification_code_expires_at = models.DateTimeField(blank=True, null=True) # For expiry
 
     objects = UserManager()
