@@ -8,21 +8,14 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .utils import Util
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     class Meta:
         model = User
-        fields = ['email', 'name', 'password', 'password2', 'tc']
+        fields = ['email', 'password']
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
-    def validate(self, attrs):
-        if attrs.get('password') != attrs.get('password2'):
-            raise serializers.ValidationError('Passwords do not match')
-        return attrs
-
     def create(self, validated_data):
-        validated_data.pop('password2', None)
         return User.objects.create_user(**validated_data)
 
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -34,16 +27,13 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'name']
+        fields = ['id', 'email']  # Removed 'name'
 
 class ChangeUserPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     def validate(self, attrs):
         user = self.context.get('user')
-        if attrs.get('password') != attrs.get('password2'):
-            raise serializers.ValidationError('Passwords do not match')
         user.set_password(attrs.get('password'))
         user.save()
         return attrs
@@ -72,17 +62,12 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
 
 class UserPasswordResetSerializer(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     def validate(self, attrs):
         try:
             password = attrs.get('password')
-            password2 = attrs.get('password2')
             uid = self.context.get('uid')
             token = self.context.get('token')
-
-            if password != password2:
-                raise serializers.ValidationError("Passwords do not match.")
 
             uid = smart_str(urlsafe_base64_decode(uid))
             user = User.objects.get(pk=uid)

@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'account',
     'rest_framework_simplejwt',
-
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -186,4 +187,11 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:5173",
 ]
+
+
+
+# Session settings 
+SESSION_COOKIE_AGE = 604800  # 2 weeks in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

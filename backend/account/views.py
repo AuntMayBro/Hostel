@@ -15,6 +15,7 @@ from django.contrib.auth import authenticate
 from .renderers import UserRenderer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken  # type: ignore
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 # Create token manually
 def get_tokens_for_user(user):
@@ -41,15 +42,35 @@ class UserLoginView(generics.GenericAPIView):
 
     def post(self, request, format=None):
         serializer = self.get_serializer(data=request.data)
-        # renderer_classes = [UserRenderer]
         serializer.is_valid(raise_exception=True)
+
         email = serializer.validated_data.get('email')
         password = serializer.validated_data.get('password')
         user = authenticate(request, email=email, password=password)
+
         if user is not None:
+            # Set user id in session
+            request.session['user_id'] = user.id
+            request.session['user_email'] = user.email
+
             token = get_tokens_for_user(user)
             return Response({'token': token, 'msg': 'Login Successful'}, status=status.HTTP_200_OK)
+
         return Response({'msg': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    
+# LogOut View
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+    # renderer_classes = [UserRenderer]
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"msg": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": "Invalid token or token already blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
 
 # User Profile View
 class UserProfileView(APIView):

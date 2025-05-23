@@ -1,12 +1,16 @@
-from rest_framework import renderers
 import json
+from rest_framework import renderers
 
 class UserRenderer(renderers.JSONRenderer):
-    charset='utf-8'
+    charset = 'utf-8'
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        response = ''
+        response = {}
+
+        # Check if the response contains an error
         if 'ErrorDetail' in str(data):
-            response = json.dumps({'error':data})
-        else :
-            response = json.dumps(data)
-        return super().render(data, accepted_media_type, renderer_context)
+            response = {'error': data}
+        else:
+            response = data  # regular successful response
+
+        return super().render(response, accepted_media_type, renderer_context)
