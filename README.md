@@ -4,7 +4,7 @@
 
 This module, built with **Django Rest Framework (DRF)** and **JWT**, handles all aspects of user authentication and account management. This includes user registration, login, email verification, password reset, and user profile management.
 
-Base URL for all endpoints: `/api/accounts/`
+Base URL for all endpoints: `/api/user/`
 
 ---
 
