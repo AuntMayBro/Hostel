@@ -5,13 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from .serializers import (
-    UserRegistrationSerializer,
-    UserLoginSerializer,
-    UserProfileSerializer,
-    ChangeUserPasswordSerializer,
-    SendPasswordResetEmailSerializer,
-    UserPasswordResetSerializer,
-    VerifyEmailSerializer
+    UserRegistrationSerializer,UserLoginSerializer,UserProfileSerializer,ChangeUserPasswordSerializer,
+    SendPasswordResetEmailSerializer,UserPasswordResetSerializer,VerifyEmailSerializer
 )
 from .models import User 
 from django.contrib.auth import authenticate
@@ -80,7 +75,7 @@ class UserRegistrationView(generics.CreateAPIView):
             "msg": "Registration successful. Please check your email for the verification code to activate your account."
         }, status=status.HTTP_201_CREATED)
 
-# User Login View (NO CHANGE)
+# User Login View
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer
     def post(self, request, format=None):
@@ -96,7 +91,7 @@ class UserLoginView(generics.GenericAPIView):
             return Response({'token': token, 'msg': 'Login Successful'}, status=status.HTTP_200_OK)
         return Response({'msg': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
-# LogOut View (NO CHANGE)
+# LogOut View 
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request):
@@ -108,7 +103,7 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": "Invalid token or token already blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
 
-# User Profile View (NO CHANGE)
+# User Profile View 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None):

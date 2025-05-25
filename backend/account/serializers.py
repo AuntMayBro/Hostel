@@ -27,16 +27,18 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email']  # Removed 'name'
+        fields = ['id', 'email'] 
 
 class ChangeUserPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     def validate(self, attrs):
+        return attrs  # Just validate format etc.
+
+    def save(self):
         user = self.context.get('user')
-        user.set_password(attrs.get('password'))
+        user.set_password(self.validated_data['password'])
         user.save()
-        return attrs
 
 class SendPasswordResetEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -59,6 +61,7 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
             return attrs
         else:
             raise serializers.ValidationError("Email is not registered")
+
 
 class UserPasswordResetSerializer(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
@@ -85,6 +88,7 @@ class UserPasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError("User not found.")
 
 
+
 class VerifyEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-    code = serializers.CharField(required=True, max_length=6) # Assuming a 6-digit code, adjust max_length as needed
+    code = serializers.CharField(required=True, max_length=6)

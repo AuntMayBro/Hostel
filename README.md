@@ -4,7 +4,7 @@
 
 This module, built with **Django Rest Framework (DRF)** and **JWT**, handles all aspects of user authentication and account management. This includes user registration, login, email verification, password reset, and user profile management.
 
-Base URL for all endpoints: `/api/accounts/`
+Base URL for all endpoints: `/api/user/`
 
 ---
 
@@ -24,7 +24,6 @@ Registers a new user and automatically sends a verification code to their email 
 {
   "email": "user@example.com",
   "password": "yourpassword",
-  "password2": "yourpassword"
 }
 ```
 
@@ -139,7 +138,6 @@ Allows a logged-in user to change their password.
 {
   "old_password": "oldpassword",
   "new_password": "newpassword",
-  "confirm_new_password": "newpassword"
 }
 ```
 
@@ -184,7 +182,6 @@ Allows a user to reset their password using the unique ID (`uid`) and token prov
 ```json
 {
   "new_password": "newpass",
-  "confirm_new_password": "newpass"
 }
 ```
 
