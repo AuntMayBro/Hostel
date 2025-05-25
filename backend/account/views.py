@@ -12,14 +12,17 @@ from .models import User
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken  # type: ignore
-from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
 from django.conf import settings
-from django.core.mail import send_mail
 import smtplib
 from rest_framework.exceptions import APIException 
 from django.utils import timezone
 from datetime import timedelta
+from .emails import sendRegistrationMail ,sendPasswordResetEmail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth import update_session_auth_hash
 
 # token
 def get_tokens_for_user(user):
@@ -32,7 +35,7 @@ def get_tokens_for_user(user):
 # Custom exception for email sending failures
 class EmailSendError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = 'Registration successful, but verification email could not be sent. Please contact support or try again later.'
+    default_detail = 'Email could not be sent. Please contact support or try again later.'
     default_code = 'email_send_error'
 
 # User Registration View
@@ -43,32 +46,21 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.save() 
+        user = serializer.save()
 
         verification_code = get_random_string(length=6, allowed_chars='0123456789')
         user.verification_code = verification_code
-        user.verification_code_expires_at = timezone.now() + timedelta(minutes=15) # Set expiry time (e.g., 15 mins)
+        user.verification_code_expires_at = timezone.now() + timedelta(minutes=15)
         user.save()
 
-        subject = "Verify Your Email for YourApp"
-        message = (
-            f"Hi {user.email},\n\n"
-            f"Thank you for registering with YourApp. Your verification code is: {verification_code}\n\n"
-            f"This code will expire in 15 minutes. Please use it to verify your account.\n\n"
-            f"If you did not register for YourApp, please ignore this email."
-        )
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [user.email]
-
         try:
-            send_mail(subject, message, email_from, recipient_list, fail_silently=False)
+            sendRegistrationMail(user)
             print(f"DEBUG: Email attempted to send successfully to {user.email}")
         except smtplib.SMTPException as e:
-            print(f"SMTP Error sending verification email to {user.email}: {e}") # Log specific SMTP errors
-            raise EmailSendError() # Raise custom exception for API response
+            print(f"SMTP Error sending verification email to {user.email}: {e}")
+            raise EmailSendError()
         except Exception as e:
-            print(f"Unexpected Error sending verification email to {user.email}: {e}") # Log general errors
-            # user.delete()
+            print(f"Unexpected Error sending verification email to {user.email}: {e}")
             raise EmailSendError()
 
         return Response({
@@ -111,27 +103,48 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # User Change Password View
-class UserChangePasswordView(APIView):
+class UserChangePasswordView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ChangeUserPasswordSerializer
     def post(self, request, format=None):
-        serializer = ChangeUserPasswordSerializer(data=request.data, context={'user': request.user})
+        serializer = self.get_serializer(data=request.data, context={'user': request.user})
         serializer.is_valid(raise_exception=True)
-        return Response({'msg': 'Password Changed Successfully'}, status=status.HTTP_200_OK)
+        serializer.update(request.user, serializer.validated_data)
+        update_session_auth_hash(request, request.user)
+        return Response({'message': ''}, status=status.HTTP_200_OK)
+        return Response({'token': token, 'msg': 'Password changed successfully.'}, status=status.HTTP_200_OK)
 
 # Send Password Reset Email View 
-class SendPasswordResetEmailView(APIView):
-    def post(self, request, format=None):
-        serializer = SendPasswordResetEmailSerializer(data=request.data)
+class SendPasswordResetEmailView(generics.GenericAPIView):
+    serializer_class = SendPasswordResetEmailSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        return Response({'msg': 'Email to Change Password Sent'}, status=status.HTTP_200_OK)
+        user = serializer.user
+        if user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = PasswordResetTokenGenerator().make_token(user)
+            reset_link = f"http://localhost:8000/api/user/reset-password/{uid}/{token}"
+            try:
+                sendPasswordResetEmail(user , reset_link)
+                print(f"DEBUG: Email attempted to send successfully to {user.email}")
+            except Exception as e:
+                print(f"Error sending password reset email to {user.email}: {e}")
+                raise EmailSendError()
+            
+        return Response(
+            {'message': 'If an account with that email exists, a password reset link has been sent to it.'},
+            status=status.HTTP_200_OK
+        )
 
 # User Password Reset View 
-class UserPasswordResetView(APIView):
+class UserPasswordResetView(generics.GenericAPIView):
+    serializer_class = UserPasswordResetSerializer
     def post(self, request, uid, token, format=None):
-        serializer = UserPasswordResetSerializer(data=request.data, context={'uid': uid, 'token': token})
-        serializer.is_valid(raise_exception=True)
-        return Response({'msg': 'Password Reset Successfully'}, status=status.HTTP_200_OK)
-    
+        serializer = self.serializer_class(data=request.data, context={'uid': uid, 'token': token})
+        serializer.is_valid(raise_exception=True) 
+        serializer.save()
+        return Response({'token': token, 'msg': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
 
 # Email Varification View    
 class VerifyEmailView(APIView):
@@ -162,5 +175,5 @@ class VerifyEmailView(APIView):
         user.verification_code = None
         user.verification_code_expires_at = None
         user.save()
-
-        return Response({"msg": "Email verified successfully"}, status=status.HTTP_200_OK)
+        token = get_tokens_for_user(user)
+        return Response({'token': token, 'msg': 'Email verified successfully'}, status=status.HTTP_200_OK)
