@@ -15,7 +15,7 @@ from django.contrib.sessions.models import Session
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'password']
+        fields = ['email', 'password','role']
         extra_kwargs = {
             'password': {'write_only': True}
         }

@@ -46,10 +46,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'account',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'decouple'
+    'decouple',
+    # Created apps 
+    'account',
+    'student',
+    'director',
+    'hostelmanager',
+    'hostel',
 ]
 
 MIDDLEWARE = [

@@ -5,6 +5,11 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils import timezone 
 from datetime import timedelta
 
+class UserRole(models.TextChoices):
+    DIRECTOR = 'director', 'Director'
+    MANAGER = 'manager', 'Manager'
+    STUDENT = 'student', 'Student'
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -34,6 +39,12 @@ class User(AbstractBaseUser):
         verbose_name="Email",
         max_length=255,
         unique=True,
+    )
+    role = models.CharField(
+        max_length=10,
+        choices=UserRole.choices,
+        default=UserRole.STUDENT,
+        verbose_name="User Role"
     )
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)

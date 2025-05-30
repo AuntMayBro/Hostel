@@ -23,96 +23,109 @@ def sendRegistrationMail(user):
     The YourApp Team
     """
 
+    app_name = "YourHostelApp"
+
     html_message = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email for YourApp</title>
+    <title>Verify Your Email for {app_name}</title>
     <style>
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-            background-color: #f8f9fa; /* Lighter, neutral background */
-            color: #343a40; /* Darker text for better contrast */
+            background-color: #f9f9f9;
+            margin: 0;
             padding: 20px;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #343a40;
         }}
         .container {{
-            max-width: 580px; /* Slightly narrower for mobile-first feel */
+            max-width: 600px;
             margin: 40px auto;
             background: #ffffff;
-            border-radius: 12px; /* More prominent rounding */
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* Softer, deeper shadow */
-            padding: 40px; /* Increased padding */
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            padding: 40px;
             text-align: center;
-            border-top: 6px solid #007bff; /* Stronger accent border */
+            border-top: 6px solid #007bff;
+        }}
+        .logo {{
+            margin-bottom: 24px;
+        }}
+        .logo img {{
+            height: 40px;
         }}
         h1 {{
+            font-size: 28px;
             color: #007bff;
-            font-size: 32px; /* Larger, more impactful heading */
-            margin-bottom: 25px;
-            font-weight: 700; /* Bolder */
+            margin-bottom: 20px;
+            font-weight: 700;
         }}
         p {{
-            font-size: 17px; /* Slightly larger body text */
+            font-size: 16px;
             color: #495057;
             margin-bottom: 20px;
         }}
-        .code-box {{
-            margin: 35px auto; /* More vertical space */
-            padding: 22px 30px;
-            font-size: 38px; /* Significantly larger code */
-            letter-spacing: 12px; /* More pronounced spacing */
+        .greeting-name {{
             font-weight: bold;
-            background-color: #e9f0ff; /* Lighter blue background */
-            border: 2px dashed #007bff; /* Matching border color */
-            border-radius: 10px;
+            color: #007bff;
+        }}
+        .code-box {{
+            margin: 30px auto;
+            padding: 20px 32px;
+            font-size: 34px;
+            letter-spacing: 10px;
+            font-weight: bold;
+            background-color: #e9f0ff;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
             display: inline-block;
             user-select: all;
-            color: #0056b3; /* Darker blue for code */
-            cursor: text; /* Hint for users that they can select/copy */
+            color: #0056b3;
         }}
         .expiration-note {{
             font-size: 15px;
-            color: #dc3545; /* Red for urgency */
-            font-weight: 600; /* Semi-bold */
-            margin-top: -15px; /* Closer to code box */
-            margin-bottom: 30px; /* More space before next paragraph */
+            color: #dc3545;
+            font-weight: 600;
+            margin-top: -10px;
+            margin-bottom: 28px;
         }}
         .ignore-note {{
             font-size: 14px;
-            color: #6c757d; /* Slightly muted gray */
-            margin-top: 30px;
+            color: #6c757d;
+            margin-top: 32px;
         }}
         .footer {{
-            margin-top: 50px; /* More space above footer */
+            margin-top: 50px;
             font-size: 14px;
-            color: #adb5bd; /* Lighter gray for footer */
-            border-top: 1px solid #e9ecef; /* Subtle separator */
+            color: #adb5bd;
+            border-top: 1px solid #e9ecef;
             padding-top: 25px;
-        }}
-        .greeting-name {{
-            font-weight: bold; /* Bold the email address */
-            color: #007bff; /* Make the email address stand out */
         }}
     </style>
     </head>
     <body>
     <div class="container">
-        <h1>Welcome to YourHostelApp! 🎉</h1>
+        <!-- Optional logo -->
+        <!-- <div class="logo">
+            <img src="https://yourdomain.com/logo.png" alt="{app_name} Logo">
+        </div> -->
+
+        <h1>Welcome to {app_name} 🎉</h1>
         <p>Hi <span class="greeting-name">{user.email}</span>,</p>
-        <p>Thank you for registering with YourHostelApp. To complete your account setup and start exploring, please use the following verification code:</p>
+        <p>Thank you for registering with {app_name}. To complete your account setup, use the verification code below:</p>
         <div class="code-box">{verification_code}</div>
-        <p class="expiration-note">This code will expire in <strong>15 minutes</strong>. Please enter it promptly to verify your account.</p>
-        <p class="ignore-note">If you did not sign up for YourHostelApp, you can safely ignore this email.</p>
-        <p class="footer">Best regards,<br>The YourHostelApp Team 🚀</p>
+        <p class="expiration-note">This code will expire in <strong>15 minutes</strong>.</p>
+        <p class="ignore-note">If you did not sign up for {app_name}, you can safely ignore this email.</p>
+        <div class="footer">
+            &mdash; The {app_name} Team 🚀
+        </div>
     </div>
     </body>
     </html>
     """
+
 
     email = EmailMultiAlternatives(
         subject=subject,
@@ -150,106 +163,86 @@ def sendPasswordResetEmail(user , link):
 
     html_message = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <title>Reset Your {app_name} Password</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Your Password for {app_name}</title>
         <style>
             body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-                background-color: #f8f9fa; /* Lighter, neutral background */
-                color: #343a40; /* Darker text for better contrast */
-                padding: 20px;
-                line-height: 1.6;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
+                background-color: #f9f9f9;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                padding: 40px 20px;
+                color: #333;
             }}
             .container {{
-                max-width: 580px; /* Consistent width */
-                margin: 40px auto;
-                background: #ffffff;
-                border-radius: 12px; /* Prominent rounding */
-                box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* Softer, deeper shadow */
-                padding: 40px; /* Increased padding */
+                max-width: 600px;
+                margin: 0 auto;
+                background: white;
+                padding: 40px;
+                border-radius: 10px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.05);
                 text-align: center;
-                border-top: 6px solid #ffc107; /* Orange/warning color for password reset */
+            }}
+            .logo {{
+                margin-bottom: 30px;
+            }}
+            .logo img {{
+                height: 40px;
             }}
             h1 {{
-                color: #007bff; /* Primary blue for main heading */
-                font-size: 30px; /* Slightly larger heading */
-                margin-bottom: 25px;
-                font-weight: 700;
-            }}
-            h2 {{
-                color: #ffc107; /* Orange for sub-heading */
                 font-size: 24px;
-                margin-top: 30px;
                 margin-bottom: 20px;
-                font-weight: 600;
+                color: #000;
             }}
             p {{
-                font-size: 17px;
-                color: #495057;
-                margin-bottom: 20px;
+                font-size: 16px;
+                line-height: 1.6;
+                color: #555;
             }}
-            .button-link {{
+            a.button {{
                 display: inline-block;
-                background-color: #007bff; /* Primary blue for button */
-                color: #ffffff !important; /* Important for white text */
-                padding: 14px 30px; /* Larger padding for button */
-                border-radius: 8px; /* Slightly more rounded button */
-                text-decoration: none;
-                font-weight: bold;
-                font-size: 18px; /* Larger button text */
-                margin: 25px 0; /* More vertical space around button */
-                box-shadow: 0 4px 10px rgba(0,123,255,0.3); /* Stronger button shadow */
-                transition: background-color 0.3s ease;
-            }}
-            .button-link:hover {{
-                background-color: #0056b3; /* Darker blue on hover */
-            }}
-            .link-text {{
-                word-break: break-all; /* Ensures long links wrap */
-                font-size: 14px;
-                color: #007bff;
-                text-decoration: underline;
-            }}
-            .security-note {{
-                font-size: 15px;
-                color: #dc3545; /* Red for security warning */
-                font-weight: 600;
                 margin-top: 30px;
+                background-color: #00b894;
+                color: white !important;
+                text-decoration: none;
+                padding: 14px 24px;
+                border-radius: 6px;
+                font-weight: 600;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                transition: background 0.3s ease;
+            }}
+            a.button:hover {{
+                background-color: #00997a;
+            }}
+            .link {{
+                word-break: break-all;
+                color: #00b894;
+                font-size: 14px;
+                margin-top: 15px;
             }}
             .footer {{
-                margin-top: 50px;
-                font-size: 14px;
-                color: #adb5bd;
-                border-top: 1px solid #e9ecef;
-                padding-top: 25px;
-            }}
-            .greeting-name {{
-                font-weight: bold;
-                color: #007bff;
+                font-size: 13px;
+                color: #999;
+                margin-top: 40px;
             }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Password Reset for {app_name}</h1>
-            <p>Hi <span class="greeting-name">{user.email}</span>,</p>
-            <p>You recently requested to reset your password. Please click the button below to set a new one:</p>
-
-            <a href="{reset_link}" class="button-link">Reset My Password</a>
-
-            <p>If the button above isn't working, you can copy and paste the following link into your browser:</p>
-            <p><span class="link-text">{reset_link}</span></p>
-
-            <p class="security-note">For your security, this link is only valid for a limited time and can only be used once.</p>
-
-            <p>If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-            
-            <p class="footer">Best regards,<br>The {app_name} Team 🔒</p>
+            <div class="logo">
+                <!-- Add your logo URL if available -->
+                <img src="https://yourhostelweb.com/static/logo.png" alt="{app_name} Logo" />
+            </div>
+            <h1>Reset your {app_name} password</h1>
+            <p>Hi <strong>{user.email}</strong>,</p>
+            <p>You recently requested to reset your password. Click the button below to set a new one:</p>
+            <a href="{reset_link}" class="button">Reset Password</a>
+            <p class="link">Or paste this link into your browser:<br>{reset_link}</p>
+            <p>If you did not request this, you can safely ignore this email.</p>
+            <div class="footer">
+                &copy; {app_name} • Secure password reset
+            </div>
         </div>
     </body>
     </html>
