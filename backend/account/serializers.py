@@ -142,7 +142,7 @@ class UserPasswordResetSerializer(serializers.Serializer):
         new_password = self.validated_data['new_password']
         user.set_password(new_password)
         user.save()
-        Session.objects.filter(expire_date__gte=timezone.now(), session_key__in=Session.objects.filter(pk=user.pk)).delete() # This needs adjustment for session key mapping, simpler is just to clear all for user
+        Session.objects.filter(expire_date__gte=timezone.now(), session_key__in=Session.objects.filter(pk=user.pk)).delete()
         return user
     
 # Verify Email Serializer

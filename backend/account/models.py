@@ -2,8 +2,6 @@
 
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-from django.utils import timezone 
-from datetime import timedelta
 
 class UserRole(models.TextChoices):
     DIRECTOR = 'director', 'Director'

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.modelfields import PhoneNumberField # type: ignore
 
 # Create your models here.
 class Institute(models.Model):
@@ -17,13 +17,13 @@ class Institute(models.Model):
         return self.name
     
 class Course(models.Model):
-    
-    class Meta:
-        unique_together = ('code', 'course')
 
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10, unique=True)
     institute = models.ForeignKey(Institute, on_delete=models.CASCADE, related_name='courses')
+
+    class Meta:
+         unique_together = ('name', 'institute')
 
     def __str__(self):
         return f"{self.name} ({self.code}) - {self.institute.name}"
