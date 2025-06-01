@@ -1,16 +1,42 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework import status, generics
+from .models import Director
 from .serializers import DirectorRegistrationSerializer
 
-# Create your views here.
+# Create your Views here
 
-class DirectorRegistrationView(generics.CreateAPIView):
+class DirectorCreateView(generics.CreateAPIView):
+    """
+    Registers a new director with associated institute and user.
+    """
     serializer_class = DirectorRegistrationSerializer
-    def post(self, request):
+    permission_classes = [permissions.AllowAny]  # Adjust as needed
+
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Director registered successfully"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            {"message": "Director registered successfully"},
+            status=status.HTTP_201_CREATED
+        )
+
+
+class DirectorDetailView(generics.RetrieveAPIView):
+    """
+    Retrieves director details by ID (or restrict to request.user).
+    """
+    queryset = Director.objects.all()
+    serializer_class = DirectorRegistrationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'pk'
+
+
+class DirectorUpdateView(generics.UpdateAPIView):
+    """
+    Updates director details by ID (or restrict to request.user).
+    """
+    queryset = Director.objects.all()
+    serializer_class = DirectorRegistrationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'pk'

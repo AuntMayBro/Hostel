@@ -100,7 +100,6 @@ class ApplicationStatus(models.TextChoices):
     REJECTED = 'rejected', 'Rejected'
     CANCELLED = 'cancelled', 'Cancelled'
 
-
 class HostelApplication(models.Model):
     """Captures hostel accommodation requests from students."""
     student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='hostel_application')
