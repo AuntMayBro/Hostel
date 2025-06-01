@@ -38,7 +38,9 @@ class Branch(models.Model):
     
 class Director(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    institute = models.ForeignKey(Institute, on_delete=models.CASCADE, related_name='directors')
+
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=20)
 
     designation = models.CharField(max_length=100, default="Director")
     contact_number = PhoneNumberField(null=True, blank=True)
@@ -51,6 +53,8 @@ class Director(models.Model):
     pincode = models.CharField(max_length=10)
 
     profile_picture = models.ImageField(upload_to='director_profiles/', null=True, blank=True)
+
+    institute = models.ForeignKey(Institute, on_delete=models.CASCADE, related_name='directors')
 
     start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField(null=True, blank=True)

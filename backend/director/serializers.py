@@ -18,7 +18,21 @@ class DirectorRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Director
-        exclude = ['user', 'start_date', 'end_date']
+        fields = (
+            'email',
+            'password',
+            'first_name',
+            'last_name',
+            'designation',
+            'contact_number',
+            'alternate_contact_number',
+            'address',
+            'city',
+            'state',
+            'pincode',
+            'profile_picture',
+            'institute', 
+        )
 
     def validate_institute(self, institute_data):
         name = institute_data.get('name')
@@ -33,8 +47,6 @@ class DirectorRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             email=validated_data.pop('email'),
             password=validated_data.pop('password'),
-            first_name=validated_data.pop('first_name'),
-            last_name=validated_data.pop('last_name'),
             role=UserRole.DIRECTOR,
             is_active=True
         )

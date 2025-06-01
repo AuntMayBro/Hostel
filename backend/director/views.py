@@ -6,9 +6,10 @@ from .serializers import DirectorRegistrationSerializer
 
 # Create your views here.
 
-class DirectorRegistrationView(generics.RetrieveUpdateDestroyAPIView):
+class DirectorRegistrationView(generics.CreateAPIView):
+    serializer_class = DirectorRegistrationSerializer
     def post(self, request):
-        serializer = DirectorRegistrationSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Director registered successfully"}, status=status.HTTP_201_CREATED)
