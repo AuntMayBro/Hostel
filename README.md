@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 ### 🔹 Register User  
 **POST** `/api/user/register/`  
-Sends verification email.
+Registers a user and returns JWT tokens.
 
 ```json
 {
@@ -41,10 +41,22 @@ Sends verification email.
 }
 ```
 
+#### 🔸 Response:
+```json
+{
+  "message": "User registered successfully. Please verify your email.",
+  "tokens": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGci...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+  }
+}
+```
+
 ---
 
 ### 🔹 Verify Email  
-**POST** `/api/user/verify-email/`
+**POST** `/api/user/verify-email/`  
+Verifies email and returns JWT tokens.
 
 ```json
 {
@@ -53,15 +65,38 @@ Sends verification email.
 }
 ```
 
+#### 🔸 Response:
+```json
+{
+  "message": "Email verified successfully.",
+  "tokens": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGci...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+  }
+}
+```
+
 ---
 
 ### 🔹 Login  
-**POST** `/api/user/login/`
+**POST** `/api/user/login/`  
+Logs in a user and returns JWT tokens.
 
 ```json
 {
   "email": "user@example.com",
   "password": "yourpassword"
+}
+```
+
+#### 🔸 Response:
+```json
+{
+  "message": "Login successful.",
+  "tokens": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGci...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+  }
 }
 ```
 
@@ -87,12 +122,24 @@ Sends verification email.
 
 ### 🔹 Change Password  
 **POST** `/api/user/change-password/`  
-🔒 Requires authentication
+🔒 Requires authentication  
+Returns new JWT tokens after successful password change.
 
 ```json
 {
   "old_password": "oldpassword",
   "new_password": "newpassword"
+}
+```
+
+#### 🔸 Response:
+```json
+{
+  "message": "Password changed successfully.",
+  "tokens": {
+    "access": "new_access_token",
+    "refresh": "new_refresh_token"
+  }
 }
 ```
 
@@ -110,11 +157,23 @@ Sends verification email.
 ---
 
 ### 🔹 Reset Password  
-**POST** `/api/user/reset-password/<uid>/<token>/`
+**POST** `/api/user/reset-password/<uid>/<token>/`  
+Returns new JWT tokens after reset.
 
 ```json
 {
   "new_password": "newpass"
+}
+```
+
+#### 🔸 Response:
+```json
+{
+  "message": "Password reset successful.",
+  "tokens": {
+    "access": "new_access_token",
+    "refresh": "new_refresh_token"
+  }
 }
 ```
 
@@ -124,7 +183,7 @@ Sends verification email.
 
 ### 🔹 Register Director  
 **POST** `/api/director/register/`  
-Registers a director along with associated institute and user.
+Registers a director and institute, and returns JWT tokens.
 
 ```json
 {
@@ -153,20 +212,29 @@ Registers a director along with associated institute and user.
 }
 ```
 
+#### 🔸 Response:
+```json
+{
+  "message": "Director registered successfully.",
+  "tokens": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGci...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+  }
+}
+```
+
 ---
 
 ### 🔹 Get Director Profile  
 **GET** `/api/director/<id>/`  
-🔒 Requires authentication
-Returns details of a specific director (usually self).
+🔒 Requires authentication  
+Returns details of the specific director.
 
 ---
 
 ### 🔹 Update Director Profile  
 **PUT/PATCH** `/api/director/<id>/`  
 🔒 Requires authentication
-
-Used to update director's personal or institute info.
 
 ```json
 {
@@ -176,4 +244,3 @@ Used to update director's personal or institute info.
 ```
 
 ---
-
