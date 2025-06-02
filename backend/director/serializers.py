@@ -57,3 +57,33 @@ class DirectorRegistrationSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return director
+    
+
+# Course and Branch Serializer
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['id', 'name', 'code', 'course']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get('request')
+        if request:
+            institute_id = request.query_params.get('institute_id')
+            if institute_id:
+                self.fields['course'].queryset = Course.objects.filter(institute_id=institute_id)
+            else:
+                self.fields['course'].queryset = Course.objects.none()
+
+class CourseSerializer(serializers.ModelSerializer):
+    branches = BranchSerializer(many=True, read_only=True)
+    class Meta:
+        model = Course
+        fields = (
+            'name',
+            'code',
+            'institute',
+            'branches',
+        )

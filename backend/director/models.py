@@ -19,19 +19,22 @@ class Institute(models.Model):
 class Course(models.Model):
 
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10, unique=True)
+    code = models.CharField(max_length=10)
     institute = models.ForeignKey(Institute, on_delete=models.CASCADE, related_name='courses')
 
     class Meta:
-         unique_together = ('name', 'institute')
+         unique_together = ('code', 'institute')
 
     def __str__(self):
         return f"{self.name} ({self.code}) - {self.institute.name}"
     
 class Branch(models.Model):
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10, unique=True)
+    code = models.CharField(max_length=10)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='branches')
+
+    class Meta:
+         unique_together = ('code', 'course')
 
     def __str__(self):
         return f"{self.name} ({self.code}) - {self.course.name} - {self.course.institute.name}"

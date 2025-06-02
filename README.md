@@ -1,11 +1,13 @@
 ﻿
 # 🏨 Hostel Management System – Backend API
 
-This project provides a RESTful API for managing a hostel system, built with **Django Rest Framework** and **JWT Authentication**. It includes:
+This project provides a RESTful API for managing a hostel system, built with **Django Rest Framework** and **JWT Authentication**.
 
-✅ User Registration, Authentication, Password Management  
-👨‍🎓 Director Registration and Management  
-🔒 Role-based Permissions (Pluggable for Hostel Managers, Students, Admins)
+## ✅ Features
+
+- User Registration, Authentication, and Password Management
+- 👨‍🎓 Director Registration and Institute Management
+- 🔒 Role-based Permissions (Pluggable for Hostel Managers, Students, Admins)
 
 ---
 
@@ -30,10 +32,13 @@ pip install -r requirements.txt
 
 ## 📘 User Authentication API
 
-### 🔹 Register User  
-**POST** `/api/user/register/`  
+### 🔹 Register User
+
+**POST** `/api/user/register/`
+
 Registers a user and returns JWT tokens.
 
+#### Request:
 ```json
 {
   "email": "user@example.com",
@@ -41,7 +46,7 @@ Registers a user and returns JWT tokens.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "User registered successfully. Please verify your email.",
@@ -54,10 +59,11 @@ Registers a user and returns JWT tokens.
 
 ---
 
-### 🔹 Verify Email  
-**POST** `/api/user/verify-email/`  
-Verifies email and returns JWT tokens.
+### 🔹 Verify Email
 
+**POST** `/api/user/verify-email/`
+
+#### Request:
 ```json
 {
   "email": "user@example.com",
@@ -65,7 +71,7 @@ Verifies email and returns JWT tokens.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "Email verified successfully.",
@@ -78,10 +84,11 @@ Verifies email and returns JWT tokens.
 
 ---
 
-### 🔹 Login  
-**POST** `/api/user/login/`  
-Logs in a user and returns JWT tokens.
+### 🔹 Login
 
+**POST** `/api/user/login/`
+
+#### Request:
 ```json
 {
   "email": "user@example.com",
@@ -89,7 +96,7 @@ Logs in a user and returns JWT tokens.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "Login successful.",
@@ -102,7 +109,8 @@ Logs in a user and returns JWT tokens.
 
 ---
 
-### 🔹 Logout  
+### 🔹 Logout
+
 **POST** `/api/user/logout/`  
 🔒 Requires authentication
 
@@ -114,16 +122,17 @@ Logs in a user and returns JWT tokens.
 
 ---
 
-### 🔹 Get Profile  
+### 🔹 Get Profile
+
 **GET** `/api/user/profile/`  
 🔒 Requires authentication
 
 ---
 
-### 🔹 Change Password  
+### 🔹 Change Password
+
 **POST** `/api/user/change-password/`  
-🔒 Requires authentication  
-Returns new JWT tokens after successful password change.
+🔒 Requires authentication
 
 ```json
 {
@@ -132,7 +141,7 @@ Returns new JWT tokens after successful password change.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "Password changed successfully.",
@@ -145,7 +154,8 @@ Returns new JWT tokens after successful password change.
 
 ---
 
-### 🔹 Send Password Reset Email  
+### 🔹 Send Password Reset Email
+
 **POST** `/api/user/send-reset-password-email/`
 
 ```json
@@ -156,9 +166,9 @@ Returns new JWT tokens after successful password change.
 
 ---
 
-### 🔹 Reset Password  
-**POST** `/api/user/reset-password/<uid>/<token>/`  
-Returns new JWT tokens after reset.
+### 🔹 Reset Password
+
+**POST** `/api/user/reset-password/<uid>/<token>/`
 
 ```json
 {
@@ -166,7 +176,7 @@ Returns new JWT tokens after reset.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "Password reset successful.",
@@ -181,10 +191,13 @@ Returns new JWT tokens after reset.
 
 ## 🧑‍💼 Director API
 
-### 🔹 Register Director  
-**POST** `/api/director/register/`  
+### 🔹 Register Director
+
+**POST** `/api/director/register/`
+
 Registers a director and institute, and returns JWT tokens.
 
+#### Request:
 ```json
 {
   "email": "director@example.com",
@@ -212,7 +225,7 @@ Registers a director and institute, and returns JWT tokens.
 }
 ```
 
-#### 🔸 Response:
+#### Response:
 ```json
 {
   "message": "Director registered successfully.",
@@ -225,14 +238,15 @@ Registers a director and institute, and returns JWT tokens.
 
 ---
 
-### 🔹 Get Director Profile  
+### 🔹 Get Director Profile
+
 **GET** `/api/director/<id>/`  
-🔒 Requires authentication  
-Returns details of the specific director.
+🔒 Requires authentication
 
 ---
 
-### 🔹 Update Director Profile  
+### 🔹 Update Director Profile
+
 **PUT/PATCH** `/api/director/<id>/`  
 🔒 Requires authentication
 
@@ -244,3 +258,75 @@ Returns details of the specific director.
 ```
 
 ---
+
+## 📚 Courses and Branches API
+
+### 🔹 List and Create Courses
+
+**GET / POST** `/api/director/courses/?institute_id=<institute_id>`  
+🔒 Requires authentication
+
+#### Request:
+```json
+{
+  "name": "Computer Science Engineering",
+  "code": "CSE"
+}
+```
+
+#### Response:
+```json
+{
+  "name": "Computer Science Engineering",
+  "code": "CSE",
+  "institute": 1,
+  "branches": []
+}
+```
+
+---
+
+### 🔹 Retrieve, Update, and Delete Course
+
+**GET / PUT / PATCH / DELETE** `/api/director/courses/<int:pk>/`  
+🔒 Requires authentication
+
+---
+
+### 🔹 List and Create Branches
+
+**GET / POST** `/api/director/branches/?institute_id=<institute_id>`  
+🔒 Requires authentication
+
+#### Request:
+```json
+{
+  "name": "Artificial Intelligence",
+  "code": "AI",
+  "course": 1
+}
+```
+
+#### Response:
+```json
+{
+  "id": 2,
+  "name": "Artificial Intelligence",
+  "code": "AI",
+  "course": 1
+}
+```
+
+---
+
+### 🔹 Retrieve, Update, and Delete Branch
+
+**GET / PUT / PATCH / DELETE** `/api/director/branches/<int:pk>/`  
+🔒 Requires authentication
+
+---
+
+## 📌 Note
+
+- Add more documentation for hostel manager and student modules as they are developed.
+- Secure endpoints using DRF permissions and roles.
