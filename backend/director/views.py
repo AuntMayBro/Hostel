@@ -10,7 +10,7 @@ from director.serializers import (
 from hostel.models import Hostel 
 from hostel.serializers import HostelSerializer
 
-from director.permissions import IsDirectorOwnerOrReadOnly
+# from director.permissions import IsDirectorOwnerOrReadOnly
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
