@@ -115,7 +115,7 @@ hostel-management-system/
 ├── backend/        
 │   ├── settings.py           
 │   ├── urls.py               # Root URL routing configuration
-│   ├── wsgi.py              
+│   ├── wsgi.py             
 │   └── asgi.py               
 ├── manage.py                 
 └── requirements.txt          # Project dependencies listing
@@ -657,4 +657,4 @@ This module is dedicated to hostel-specific operations, including the management
     * Exploration of WebSocket integration for real-time data updates, particularly for features such as application status tracking.
 * **Configuration Settings:** It is imperative to ensure that the `settings.py` file contains appropriate configurations for `SIMPLE_JWT` (including token lifetime parameters), `FRONTEND_PASSWORD_RESET_URL`, and the designated email backend services.
 
-This README document aims to provide a thorough and professional overview of the Hostel Management System API. Co
+This README document aims to provide a thorough and professional overview of the Hostel Management System API.
