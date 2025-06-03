@@ -6,6 +6,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from datetime import timedelta
 import smtplib
+from django.conf import settings
 
 from rest_framework import status, generics
 from rest_framework.views import APIView
@@ -51,7 +52,7 @@ class UserRegistrationView(generics.CreateAPIView):
         user.save(update_fields=['verification_code', 'verification_code_expires_at'])
 
         try:
-            send_registration_mail(user)
+            sendRegistrationMail(user)
         except smtplib.SMTPException as e:
             raise EmailSendError(detail=f"SMTP Error: {str(e)}")
         except Exception as e:
@@ -107,14 +108,14 @@ class LogoutView(APIView):
 
 class UserProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
     
 class UserChangePasswordView(generics.UpdateAPIView): 
     serializer_class = ChangeUserPasswordSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
@@ -137,18 +138,25 @@ class SendPasswordResetEmailView(generics.GenericAPIView):
         email = serializer.validated_data['email']
         
         user = User.objects.filter(email=email, is_active=True).first()
+
+        if user is None :
+            return Response(
+                {"error": "User does not exist."},
+                status=status.HTTP_404_NOT_FOUND
+            )    
         
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = PasswordResetTokenGenerator().make_token(user)
  
-            frontend_reset_url = getattr(settings, 'FRONTEND_PASSWORD_RESET_URL', 'http://localhost:3000/reset-password') 
+            frontend_reset_url = getattr(settings, 'FRONTEND_PASSWORD_RESET_URL', 'http://127.0.0.1:8000/api/user/reset-password') 
             reset_link = f"{frontend_reset_url}/{uid}/{token}/"
             
             try:
-                send_password_reset_email(user, reset_link)
+                sendPasswordResetEmail(user, reset_link)
             except Exception as e:
                 print(f"Error sending password reset email to {user.email}: {e}")
+        
 
         return Response(
             {'msg': 'If an account with that email exists and is active, a password reset link has been sent.'},

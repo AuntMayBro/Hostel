@@ -56,7 +56,7 @@ class DirectorDetailView(generics.RetrieveUpdateDestroyAPIView):
 class InstituteListView(generics.ListAPIView):
     queryset = Institute.objects.all()
     serializer_class = InstituteSerializer
-    permission_classes = [permissions.IsAuthenticated] # Adjust as needed
+    permission_classes = [permissions.IsAuthenticated]
 
 class InstituteDetailView(generics.RetrieveAPIView):
     queryset = Institute.objects.all()
@@ -68,32 +68,36 @@ class CourseListCreateView(generics.ListCreateAPIView):
     # permission_classes = [permissions.IsAuthenticated] 
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Course.objects.select_related('institute').all()
-        if hasattr(user, 'director_profile'):
-            return Course.objects.filter(institute=user.director_profile.institute).select_related('institute')
-        return Course.objects.none()
+        return Course.objects.select_related('institute').all()
+        # user = self.request.user
+        # if user.is_superuser:
+        #     return Course.objects.select_related('institute').all()
+        # if hasattr(user, 'director_profile'):
+        #     return Course.objects.filter(institute=user.director_profile.institute).select_related('institute')
+        # return Course.objects.none()
 
     def perform_create(self, serializer):
-        user = self.request.user
-        institute_from_payload = serializer.validated_data.get('institute')
 
-        if not hasattr(user, 'director_profile') and not user.is_superuser:
-            raise PermissionDenied("You do not have permission to create courses.")
+        serializer.save()
 
-        if hasattr(user, 'director_profile'):
-            if institute_from_payload != user.director_profile.institute:
-                raise ValidationError(
-                    {"institute": "You can only create courses for your assigned institute."}
-                )
-            serializer.save(institute=user.director_profile.institute)
-        elif user.is_superuser:
-            if not institute_from_payload:
-                raise ValidationError({"institute": "Institute is required for superuser."})
-            serializer.save() 
-        else:
-            raise PermissionDenied("Action not allowed.")
+        # user = self.request.user
+        # institute_from_payload = serializer.validated_data.get('institute')
+
+        # if not hasattr(user, 'director_profile') and not user.is_superuser:
+        #     raise PermissionDenied("You do not have permission to create courses.")
+
+        # if hasattr(user, 'director_profile'):
+        #     if institute_from_payload != user.director_profile.institute:
+        #         raise ValidationError(
+        #             {"institute": "You can only create courses for your assigned institute."}
+        #         )
+        #     serializer.save(institute=user.director_profile.institute)
+        # elif user.is_superuser:
+        #     if not institute_from_payload:
+        #         raise ValidationError({"institute": "Institute is required for superuser."})
+        #     serializer.save() 
+        # else:
+        #     raise PermissionDenied("Action not allowed.")
 
 
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -101,15 +105,18 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseSerializer
     # permission_classes = [permissions.IsAuthenticated] 
 
-    def get_object(self):
-        obj = super().get_object()
-        user = self.request.user
-        if not user.is_superuser and hasattr(user, 'director_profile'):
-            if obj.institute != user.director_profile.institute:
-                raise PermissionDenied("You do not have permission to access this course.")
-        elif not user.is_superuser:
-             raise PermissionDenied("You do not have permission to access this course.")
-        return obj
+    queryset = Course.objects.select_related('institute').all()
+    serializer_class = CourseSerializer
+
+    # def get_object(self):
+    #     obj = super().get_object()
+    #     user = self.request.user
+    #     if not user.is_superuser and hasattr(user, 'director_profile'):
+    #         if obj.institute != user.director_profile.institute:
+    #             raise PermissionDenied("You do not have permission to access this course.")
+    #     elif not user.is_superuser:
+    #          raise PermissionDenied("You do not have permission to access this course.")
+    #     return obj
 
 
 class BranchListCreateView(generics.ListCreateAPIView):
@@ -117,49 +124,49 @@ class BranchListCreateView(generics.ListCreateAPIView):
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        course_id = self.request.query_params.get('course_id')
-        
-        if not course_id:
-            if user.is_superuser:
-                return Branch.objects.select_related('course__institute').all()
-            if hasattr(user, 'director_profile'):
-                return Branch.objects.filter(course__institute=user.director_profile.institute).select_related('course__institute')
-            return Branch.objects.none()
+        Branch.objects.select_related('course__institute').all()
 
-        try:
-            course = Course.objects.get(pk=course_id)
-        except Course.DoesNotExist:
-            raise ValidationError({"course_id": "Invalid course ID."})
+        # user = self.request.user
+        # course_id = self.request.query_params.get('course_id')
+        # if not course_id:
+        #     if user.is_superuser:
+        #         return Branch.objects.select_related('course__institute').all()
+        #     if hasattr(user, 'director_profile'):
+        #         return Branch.objects.filter(course__institute=user.director_profile.institute).select_related('course__institute')
+        #     return Branch.objects.none()
 
-        if not user.is_superuser and hasattr(user, 'director_profile'):
-            if course.institute != user.director_profile.institute:
-                raise PermissionDenied("You can only view branches for courses in your institute.")
-        elif not user.is_superuser:
-            raise PermissionDenied("Permission denied.")
+        # try:
+        #     course = Course.objects.get(pk=course_id)
+        # except Course.DoesNotExist:
+        #     raise ValidationError({"course_id": "Invalid course ID."})
+
+        # if not user.is_superuser and hasattr(user, 'director_profile'):
+        #     if course.institute != user.director_profile.institute:
+        #         raise PermissionDenied("You can only view branches for courses in your institute.")
+        # elif not user.is_superuser:
+        #     raise PermissionDenied("Permission denied.")
             
-        return Branch.objects.filter(course=course).select_related('course__institute')
+        # return Branch.objects.filter(course=course).select_related('course__institute')
 
     def perform_create(self, serializer):
-        user = self.request.user
-        course_from_payload = serializer.validated_data.get('course')
+        # user = self.request.user
+        # course_from_payload = serializer.validated_data.get('course')
 
-        if not hasattr(user, 'director_profile') and not user.is_superuser:
-            raise PermissionDenied("You do not have permission to create branches.")
+        # if not hasattr(user, 'director_profile') and not user.is_superuser:
+        #     raise PermissionDenied("You do not have permission to create branches.")
 
-        if not course_from_payload:
-            raise ValidationError({"course": "Course is required to create a branch."})
+        # if not course_from_payload:
+        #     raise ValidationError({"course": "Course is required to create a branch."})
 
-        if hasattr(user, 'director_profile'):
-            if course_from_payload.institute != user.director_profile.institute:
-                raise ValidationError(
-                    {"course": "You can only create branches for courses in your assigned institute."}
-                )
-        elif user.is_superuser:
-            pass 
-        else:
-            raise PermissionDenied("Action not allowed.")
-        
+        # if hasattr(user, 'director_profile'):
+        #     if course_from_payload.institute != user.director_profile.institute:
+        #         raise ValidationError(
+        #             {"course": "You can only create branches for courses in your assigned institute."}
+        #         )
+        # elif user.is_superuser:
+        #     pass 
+        # else:
+        #     raise PermissionDenied("Action not allowed.")
         serializer.save()
 
     def get_serializer_context(self):
@@ -178,12 +185,12 @@ class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         obj = super().get_object()
-        user = self.request.user
-        if not user.is_superuser and hasattr(user, 'director_profile'):
-            if obj.course.institute != user.director_profile.institute:
-                raise PermissionDenied("You do not have permission to access this branch.")
-        elif not user.is_superuser:
-            raise PermissionDenied("You do not have permission to access this branch.")
+        # user = self.request.user
+        # if not user.is_superuser and hasattr(user, 'director_profile'):
+        #     if obj.course.institute != user.director_profile.institute:
+        #         raise PermissionDenied("You do not have permission to access this branch.")
+        # elif not user.is_superuser:
+        #     raise PermissionDenied("You do not have permission to access this branch.")
         return obj
 
 
@@ -208,36 +215,42 @@ class DirectorHostelListCreateView(generics.ListCreateAPIView):
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'director_profile'):
-            return Hostel.objects.filter(institute=user.director_profile.institute).select_related('institute', 'director', 'manager__user')
-        elif user.is_superuser:
-            return Hostel.objects.all().select_related('institute', 'director', 'manager__user')
-        return Hostel.objects.none()
+
+        Hostel.objects.all()
+
+        # user = self.request.user
+        # if hasattr(user, 'director_profile'):
+        #     return Hostel.objects.filter(institute=user.director_profile.institute).select_related('institute', 'director', 'manager__user')
+        # elif user.is_superuser:
+        #     return Hostel.objects.all().select_related('institute', 'director', 'manager__user')
+        # return Hostel.objects.none()
 
     def perform_create(self, serializer):
-        user = self.request.user
-        if not hasattr(user, 'director_profile') and not user.is_superuser:
-            raise PermissionDenied("Only Directors or Superusers can create hostels.")
 
-        institute_from_payload = serializer.validated_data.get('institute')
+        serializer.save() 
+
+        # user = self.request.user
+        # if not hasattr(user, 'director_profile') and not user.is_superuser:
+        #     raise PermissionDenied("Only Directors or Superusers can create hostels.")
+
+        # institute_from_payload = serializer.validated_data.get('institute')
         
-        if hasattr(user, 'director_profile'):
-            if institute_from_payload != user.director_profile.institute:
-                raise ValidationError({"institute": "You can only create hostels for your assigned institute."})
-            serializer.save(director=user.director_profile, institute=user.director_profile.institute)
-        elif user.is_superuser:
-            if not institute_from_payload:
-                 raise ValidationError({"institute": "Institute is required for superuser."})
-            serializer.save() 
-        else:
-            raise PermissionDenied("Action not allowed.")
+        # if hasattr(user, 'director_profile'):
+        #     if institute_from_payload != user.director_profile.institute:
+        #         raise ValidationError({"institute": "You can only create hostels for your assigned institute."})
+        #     serializer.save(director=user.director_profile, institute=user.director_profile.institute)
+        # elif user.is_superuser:
+        #     if not institute_from_payload:
+        #          raise ValidationError({"institute": "Institute is required for superuser."})
+        #     serializer.save() 
+        # else:
+        #     raise PermissionDenied("Action not allowed.")
 
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
+    # def get_serializer_context(self):
+    #     context = super().get_serializer_context()
+    #     context['request'] = self.request
+    #     return context
 
 class DirectorHostelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Hostel.objects.all().select_related('institute', 'director', 'manager__user')
@@ -246,15 +259,15 @@ class DirectorHostelDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         obj = super().get_object()
-        user = self.request.user
-        if not user.is_superuser and hasattr(user, 'director_profile'):
-            if obj.institute != user.director_profile.institute:
-                raise PermissionDenied("You do not have permission to manage this hostel.")
-        elif not user.is_superuser: 
-            raise PermissionDenied("You do not have permission to manage this hostel.")
+        # user = self.request.user
+        # if not user.is_superuser and hasattr(user, 'director_profile'):
+        #     if obj.institute != user.director_profile.institute:
+        #         raise PermissionDenied("You do not have permission to manage this hostel.")
+        # elif not user.is_superuser: 
+        #     raise PermissionDenied("You do not have permission to manage this hostel.")
         return obj
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
+    # def get_serializer_context(self):
+    #     context = super().get_serializer_context()
+    #     context['request'] = self.request
+    #     return context

@@ -14,12 +14,12 @@ router.register(r'applications', HostelApplicationViewSet, basename='hostelappli
 
 urlpatterns = [
     # Room's Url
-    path('rooms/', RoomListCreateView.as_view(), name='room-list-create'),
-    path('rooms/<int:pk>/', RoomDetailView.as_view(), name='room-detail'),
+    path('create-room/', RoomListCreateView.as_view(), name='room-list-create'),
+    path('room/<int:pk>/', RoomDetailView.as_view(), name='room-detail'),
 
     # Manager's Url
-    path('managers/', HostelManagerListCreateView.as_view(), name='hostelmanager-list-create'),
-    path('managers/<int:pk>/', HostelManagerDetailView.as_view(), name='hostelmanager-detail'),
+    path('create-manager/', HostelManagerListCreateView.as_view(), name='hostelmanager-list-create'),
+    path('manager/<int:pk>/', HostelManagerDetailView.as_view(), name='hostelmanager-detail'),
 
     # Hostel Application's Url
     path('', include(router.urls)),

@@ -70,29 +70,29 @@ class HostelSerializer(serializers.ModelSerializer):
         if not institute and is_creating: 
             raise serializers.ValidationError({"institute": "Institute is required."})
         
-        if institute:
-            if not hasattr(user, 'director_profile') or user.director_profile.institute != institute:
-                if not user.is_superuser:
-                    raise serializers.ValidationError(
-                        {"institute": "You can only manage hostels under your assigned institute."}
-                    )
+        # if institute:
+        #     if not hasattr(user, 'director_profile') or user.director_profile.institute != institute:
+        #         if not user.is_superuser:
+        #             raise serializers.ValidationError(
+        #                 {"institute": "You can only manage hostels under your assigned institute."}
+        #             )
         
-        if is_creating:
-            if hasattr(user, 'director_profile'):
-                if institute != user.director_profile.institute:
-                     raise serializers.ValidationError(
-                        {"institute": "Hostel institute must match your assigned institute."}
-                    )
-                data['director'] = user.director_profile 
-            elif not user.is_superuser:
-                raise serializers.ValidationError("Only a Director or Superuser can create a hostel.")
-        else: # Updating
-            if 'director' in data and data['director'] != self.instance.director:
-                if not user.is_superuser:
-                    raise serializers.ValidationError("Director cannot be changed by this user.")
-            if 'institute' in data and data['institute'] != self.instance.institute:
-                if not user.is_superuser: 
-                     raise serializers.ValidationError("Institute cannot be changed by this user.")
+        # if is_creating:
+        #     if hasattr(user, 'director_profile'):
+        #         if institute != user.director_profile.institute:
+        #              raise serializers.ValidationError(
+        #                 {"institute": "Hostel institute must match your assigned institute."}
+        #             )
+        #         data['director'] = user.director_profile 
+        #     elif not user.is_superuser:
+        #         raise serializers.ValidationError("Only a Director or Superuser can create a hostel.")
+        # else: # Updating
+        #     if 'director' in data and data['director'] != self.instance.director:
+        #         if not user.is_superuser:
+        #             raise serializers.ValidationError("Director cannot be changed by this user.")
+        #     if 'institute' in data and data['institute'] != self.instance.institute:
+        #         if not user.is_superuser: 
+        #              raise serializers.ValidationError("Institute cannot be changed by this user.")
 
         total_rooms = data.get('total_rooms', getattr(self.instance, 'total_rooms', 0))
         available_rooms = data.get('available_rooms', getattr(self.instance, 'available_rooms', 0))
@@ -154,17 +154,17 @@ class RoomSerializer(serializers.ModelSerializer):
         if not hostel: 
             raise serializers.ValidationError({"hostel": "Hostel is required."})
 
-        if user and not user.is_superuser:
-            allowed = False
-            if hasattr(user, 'director_profile') and hostel.director == user.director_profile:
-                allowed = True
-            elif hasattr(user, 'hostelmanager_profile') and hostel.manager == user.hostelmanager_profile:
-                allowed = True
+        # if user and not user.is_superuser:
+        #     allowed = False
+        #     if hasattr(user, 'director_profile') and hostel.director == user.director_profile:
+        #         allowed = True
+        #     elif hasattr(user, 'hostelmanager_profile') and hostel.manager == user.hostelmanager_profile:
+        #         allowed = True
             
-            if not allowed:
-                raise serializers.ValidationError(
-                    {"detail": "You do not have permission to manage rooms for this hostel."}
-                )
+        #     if not allowed:
+        #         raise serializers.ValidationError(
+        #             {"detail": "You do not have permission to manage rooms for this hostel."}
+        #         )
 
         room_number = attrs.get('room_number', getattr(instance, 'room_number', None))
         if hostel and room_number:
@@ -254,8 +254,10 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             'address_line1', 'address_line2', 'city', 'state', 'pincode',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ('id', 'user_email', 'full_name', 'institute_name', 'course_name', 'branch_name',
-                            'is_currently_hosteller', 'created_at', 'updated_at')
+        read_only_fields = (
+            'id', 'user_email', 'full_name', 'institute_name', 'course_name', 'branch_name',
+            'is_currently_hosteller', 'created_at', 'updated_at'
+        )
 
 class HostelApplicationSerializer(serializers.ModelSerializer):
     student_info = StudentProfileSerializer(source='student', read_only=True)

@@ -16,11 +16,11 @@ from .views import (
 urlpatterns = [
     # Director's Url
     path('register/', DirectorCreateView.as_view(), name='director-register'),
-    path('directors/<int:pk>/', DirectorDetailView.as_view(), name='director-detail'),
+    path('<int:pk>/', DirectorDetailView.as_view(), name='director-detail'),
 
     # Institute's Url
-    path('institutes/', InstituteListView.as_view(), name='institute-list'),
-    path('institutes/<int:pk>/', InstituteDetailView.as_view(), name='institute-detail'),
+    path('institute/', InstituteListView.as_view(), name='institute-list'),
+    path('institute/<int:pk>/', InstituteDetailView.as_view(), name='institute-detail'),
 
     # Coursees' Url
     path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
@@ -31,8 +31,8 @@ urlpatterns = [
     path('branches/<int:pk>/', BranchDetailView.as_view(), name='branch-detail'),
 
     # Hostel's Url
-    path('hostels/', DirectorHostelListCreateView.as_view(), name='director-hostel-list-create'),
-    path('hostels/<int:pk>/', DirectorHostelDetailView.as_view(), name='director-hostel-detail'),
+    path('create-hostel/', DirectorHostelListCreateView.as_view(), name='director-hostel-list-create'),
+    path('hostel/<int:pk>/', DirectorHostelDetailView.as_view(), name='director-hostel-detail'),
 
     # path('hostel/create/', HostelCreateAPIView.as_view(), name='hostel-create'),
 ]
