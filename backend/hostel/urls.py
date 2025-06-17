@@ -23,5 +23,5 @@ urlpatterns = [
 
     # Hostel Application's Url
     path('', include(router.urls)),
-
+    
 ]

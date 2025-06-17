@@ -17,10 +17,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .emails import sendPasswordResetEmail, sendRegistrationMail
 from account.serializers import ( 
-    UserRegistrationSerializer, UserLoginSerializer, UserProfileSerializer,
+    UserRegistrationSerializer, UserProfileSerializer,
     ChangeUserPasswordSerializer, SendPasswordResetEmailSerializer,
-    UserPasswordResetSerializer, VerifyEmailSerializer
+    UserPasswordResetSerializer, VerifyEmailSerializer, AdminLoginSerializer,
+    StudentLoginSerializer
 )
+
+from .models import UserRole
 
 User = get_user_model()
 
@@ -62,23 +65,48 @@ class UserRegistrationView(generics.CreateAPIView):
             "msg": "Registration successful. Please check your email for the verification code to activate your account."
         }, status=status.HTTP_201_CREATED)
 
-class UserLoginView(generics.GenericAPIView):
-    serializer_class = UserLoginSerializer
+# class UserLoginView(generics.GenericAPIView):
+#     serializer_class = UserLoginSerializer
+#     permission_classes = [AllowAny]
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+        
+#         email = serializer.validated_data.get('email')
+#         password = serializer.validated_data.get('password')
+        
+#         user = authenticate(request, email=email, password=password)
+        
+#         if user is not None:
+#             if not user.is_active:
+#                 return Response({'detail': 'Account not activated. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
+
+#             tokens = get_tokens_for_user(user)
+#             return Response({
+#                 'tokens': tokens, 
+#                 'user_id': user.id,
+#                 'email': user.email,
+#                 'role': user.role,
+#                 'msg': 'Login Successful'
+#             }, status=status.HTTP_200_OK)
+        
+#         return Response({'detail': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class BaseLoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        email = serializer.validated_data.get('email')
-        password = serializer.validated_data.get('password')
-        
+    def authenticate_and_login(self, request, email, password, expected_role=None):
         user = authenticate(request, email=email, password=password)
         
         if user is not None:
             if not user.is_active:
                 return Response({'detail': 'Account not activated. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
-
+            
+            if expected_role and user.role != expected_role:
+                return Response({'detail': f'Unauthorized: You do not have {expected_role} privileges.'}, status=status.HTTP_403_FORBIDDEN)
+            
             tokens = get_tokens_for_user(user)
             return Response({
                 'tokens': tokens, 
@@ -89,6 +117,31 @@ class UserLoginView(generics.GenericAPIView):
             }, status=status.HTTP_200_OK)
         
         return Response({'detail': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class StudentLoginView(BaseLoginView):
+    serializer_class = StudentLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data.get('email')
+        password = serializer.validated_data.get('password')
+        
+        return self.authenticate_and_login(request, email, password, expected_role=UserRole.STUDENT)
+
+class AdminLoginView(BaseLoginView):
+    serializer_class = AdminLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data.get('email')
+        password = serializer.validated_data.get('password')
+        role = serializer.validated_data.get('role')
+
+        return self.authenticate_and_login(request, email, password, expected_role=role)
 
 class LogoutView(APIView):
     # permission_classes = [IsAuthenticated]

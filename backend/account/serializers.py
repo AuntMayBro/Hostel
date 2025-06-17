@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sessions.models import Session
+from .models import UserRole
 
 User = get_user_model()
 
@@ -29,13 +30,34 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
-# User login Serializer
-class UserLoginSerializer(serializers.Serializer): # Changed to serializers.Serializer for custom auth
+
+class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(
         style={'input_type': 'password'},
         write_only=True,
         required=True
+    )
+
+# Specific serializer for student login (no role field)
+class StudentLoginSerializer(UserLoginSerializer):
+    role = serializers.ChoiceField(
+        choices=[UserRole.STUDENT],
+        required=True,
+        error_messages={
+            'required': 'Role is required for admin login.',
+        }
+    )
+
+# Specific serializer for director/manager login (role field required)
+class AdminLoginSerializer(UserLoginSerializer):
+    role = serializers.ChoiceField(
+        choices=[UserRole.DIRECTOR, UserRole.MANAGER],
+        required=True,
+        error_messages={
+            'required': 'Role is required for admin login.',
+            'invalid_choice': 'Invalid role. Must be director or manager.'
+        }
     )
 
 # User Profile Serializer
