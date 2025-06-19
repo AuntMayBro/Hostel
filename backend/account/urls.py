@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     UserRegistrationView,
     StudentLoginView,
@@ -9,9 +10,17 @@ from .views import (
     SendPasswordResetEmailView,
     UserPasswordResetView,
     VerifyEmailView,
+    GetSessionView,
 )
 
+
+
+
 urlpatterns = [
+    
+    path('session/', GetSessionView.as_view(), name='get-session'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     # Refister URLs
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('verify-email/', VerifyEmailView.as_view(), name='user-verify-email'),

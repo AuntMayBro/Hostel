@@ -4,23 +4,32 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from datetime import timedelta
+from datetime import timedelta, datetime
 import smtplib
+import json
+import base64
 from django.conf import settings
 
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.exceptions import APIException, ValidationError
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import APIException, ValidationError, AuthenticationFailed, ParseError
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+import jwt
+from jwt.exceptions import DecodeError, InvalidSignatureError, ExpiredSignatureError
 
 from .emails import sendPasswordResetEmail, sendRegistrationMail
 from account.serializers import ( 
     UserRegistrationSerializer, UserProfileSerializer,
     ChangeUserPasswordSerializer, SendPasswordResetEmailSerializer,
     UserPasswordResetSerializer, VerifyEmailSerializer, AdminLoginSerializer,
-    StudentLoginSerializer
+    StudentLoginSerializer, MyTokenObtainPairSerializer
 )
 
 from .models import UserRole
@@ -40,30 +49,107 @@ class EmailSendError(APIException):
     default_code = 'email_send_error'
 
 
+class UserNotFound(APIException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = 'User not found.'
+    default_code = 'user_not_found'
+
+class GetSessionView(APIView):
+    authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]  # optional
+
+    def _decode_token_expiration(self, token_string, token_type="access"):
+        try:
+            token_cls = AccessToken if token_type == "access" else RefreshToken
+            token_obj = token_cls(token_string)
+            return timezone.datetime.fromtimestamp(token_obj["exp"], tz=timezone.utc)
+        except Exception as e:
+            print(f"[Token Decode Error] {token_type.title()} Token: {e}")
+            return None
+
+    def get(self, request):
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            raise AuthenticationFailed("Authentication credentials were not provided or invalid.")
+
+        access_token_string = None
+        refresh_token_string = request.COOKIES.get('refresh')
+
+        if request.auth:
+            access_token_string = str(request.auth)
+        else:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                access_token_string = auth_header.replace("Bearer ", "")
+            if not access_token_string:
+                raise AuthenticationFailed("Access token missing or malformed in Authorization header.")
+
+        # Decode expiration
+        access_exp = self._decode_token_expiration(access_token_string, "access")
+        refresh_exp = self._decode_token_expiration(refresh_token_string, "refresh") if refresh_token_string else None
+
+        # Build response
+        response_data = {
+            "session": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "role": getattr(user, "role", "user")
+                },
+                "access_token": access_token_string,
+                "access_expires_at": access_exp,
+                "refresh_token": refresh_token_string,
+                "refresh_expires_at": refresh_exp,
+                "authenticated": True
+            }
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        verification_code = get_random_string(length=6, allowed_chars='0123456789')
-        user.verification_code = verification_code
-        user.verification_code_expires_at = timezone.now() + timedelta(minutes=settings.VERIFICATION_CODE_EXPIRY_MINUTES if hasattr(settings, 'VERIFICATION_CODE_EXPIRY_MINUTES') else 15)
-        user.save(update_fields=['verification_code', 'verification_code_expires_at'])
-
         try:
-            sendRegistrationMail(user)
-        except smtplib.SMTPException as e:
-            raise EmailSendError(detail=f"SMTP Error: {str(e)}")
-        except Exception as e:
-            raise EmailSendError(detail=f"Unexpected email error: {str(e)}")
+            email = request.data.get('email')
+            if email and User.objects.filter(email=email).exists():
+                return Response({"msg": -1, "error": "User with this email already exists."},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({
-            "msg": "Registration successful. Please check your email for the verification code to activate your account."
-        }, status=status.HTTP_201_CREATED)
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return Response({"msg": -1, "errors": serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            user = serializer.save()
+
+            verification_code = get_random_string(length=6, allowed_chars='0123456789')
+            user.verification_code = verification_code
+            user.verification_code_expires_at = timezone.now() + timedelta(
+                minutes=getattr(settings, 'VERIFICATION_CODE_EXPIRY_MINUTES', 15)
+            )
+            user.save(update_fields=['verification_code', 'verification_code_expires_at'])
+
+            try:
+                sendRegistrationMail(user)
+            except smtplib.SMTPException as e:
+                return Response({"msg": 0, "error": f"SMTP Error: {str(e)}"},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                return Response({"msg": 0, "error": f"Unexpected email error: {str(e)}"},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            return Response({
+                "msg": 1,
+                "msg2": "Registration successful. Please check your email for the verification code to activate your account."
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"msg": 0, "error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # class UserLoginView(generics.GenericAPIView):
 #     serializer_class = UserLoginSerializer
@@ -145,18 +231,15 @@ class AdminLoginView(BaseLoginView):
 
 class LogoutView(APIView):
     # permission_classes = [IsAuthenticated]
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         try:
-            refresh_token = request.data.get("refresh")
-            if not refresh_token:
-                return Response({"detail": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
-            
+            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return Response({"msg": "Logout successful."}, status=status.HTTP_200_OK)
-        except Exception as e: 
-            return Response({"detail": "Invalid token or token already blacklisted."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Logged out successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"msg": "Invalid refresh token", "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserProfileView(generics.RetrieveAPIView):

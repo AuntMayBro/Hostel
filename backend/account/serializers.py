@@ -9,8 +9,19 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 from .models import UserRole
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token["email"] = user.email
+        token["username"] = user.username
+        token["role"] = user.role if hasattr(user, 'role') else 'user'
+        return token
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(

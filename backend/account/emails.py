@@ -30,7 +30,6 @@ def sendRegistrationMail(user):
     <html lang="en">
     <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email for {app_name}</title>
     <style>
         body {{
@@ -49,12 +48,6 @@ def sendRegistrationMail(user):
             padding: 40px;
             text-align: center;
             border-top: 6px solid #007bff;
-        }}
-        .logo {{
-            margin-bottom: 24px;
-        }}
-        .logo img {{
-            height: 40px;
         }}
         h1 {{
             font-size: 28px;
@@ -81,14 +74,21 @@ def sendRegistrationMail(user):
             border: 2px dashed #007bff;
             border-radius: 8px;
             display: inline-block;
-            user-select: all;
             color: #0056b3;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }}
+        .hint {{
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 8px;
         }}
         .expiration-note {{
             font-size: 15px;
             color: #dc3545;
             font-weight: 600;
-            margin-top: -10px;
             margin-bottom: 28px;
         }}
         .ignore-note {{
@@ -107,15 +107,21 @@ def sendRegistrationMail(user):
     </head>
     <body>
     <div class="container">
-        <!-- Optional logo -->
-        <!-- <div class="logo">
-            <img src="https://yourdomain.com/logo.png" alt="{app_name} Logo">
-        </div> -->
-
         <h1>Welcome to {app_name} 🎉</h1>
         <p>Hi <span class="greeting-name">{user.email}</span>,</p>
         <p>Thank you for registering with {app_name}. To complete your account setup, use the verification code below:</p>
+        
         <div class="code-box">{verification_code}</div>
+        <div class="hint">Long press or select the above code to copy it.</div>
+
+        <!-- Plain text version for easy copy-paste -->
+        <p style="font-size: 16px; margin-top: 30px;">
+            Or just copy this code manually:<br>
+            <code style="font-family: monospace; font-size: 20px; background-color: #f1f1f1; padding: 8px 12px; border-radius: 5px; display: inline-block; color: #000;">
+                {verification_code}
+            </code>
+        </p>
+
         <p class="expiration-note">This code will expire in <strong>15 minutes</strong>.</p>
         <p class="ignore-note">If you did not sign up for {app_name}, you can safely ignore this email.</p>
         <div class="footer">

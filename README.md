@@ -84,31 +84,31 @@ This document outlines the architecture and functionalities of the Hostel Manage
 The project adheres to a conventional Django project structure, as illustrated below:
 
 hostel-management-system/
-├── account/               # Manages user authentication and profiles
+├── account/               # Authentication & User Profiles
 │   ├── migrations/
 │   ├── models.py
 │   ├── serializers.py
 │   ├── views_account.py
 │   └── urls.py
-├── director/              # Manages directors, institutes, courses, branches
+├── director/              # Institutes, Directors, Courses
 │   ├── migrations/
 │   ├── models.py
 │   ├── serializers_director.py
 │   ├── views_director.py
 │   └── urls.py
-├── hostel/                # Manages hostels, rooms, managers, applications
+├── hostel/                # Hostels, Rooms, Managers
 │   ├── migrations/
 │   ├── models.py
 │   ├── serializers_hostel.py
 │   ├── views_hostel.py
 │   └── urls.py
-├── backend/               # Main project configuration
+├── backend/               # Main Config Files
 │   ├── settings.py
-│   ├── urls.py            # Root URL routing configuration
+│   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
 ├── manage.py
-└── requirements.txt       # Project dependencies listing
+└── requirements.txt       # Dependency Lisy
 
 
 ---
