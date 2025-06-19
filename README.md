@@ -79,6 +79,7 @@ This document outlines the architecture and functionalities of the Hostel Manage
 
 ---
 
+<<<<<<< HEAD
 ## 📂 Standardized Directory Architecture
 
 The project adheres to a conventional Django project structure, as illustrated below:
@@ -112,6 +113,8 @@ hostel-management-system/
 
 
 ---
+=======
+>>>>>>> b4ca85f591b38c6e731efafb7632e7fe69159b12
 
 ## 🔑 Authentication Protocol
 
