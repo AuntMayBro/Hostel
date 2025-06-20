@@ -116,12 +116,12 @@ class UserRegistrationView(generics.CreateAPIView):
         try:
             email = request.data.get('email')
             if email and User.objects.filter(email=email).exists():
-                return Response({"msg": -1, "error": "User with this email already exists."},
+                return Response({"code": -1, "error": "User with this email already exists."},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             serializer = self.get_serializer(data=request.data)
             if not serializer.is_valid():
-                return Response({"msg": -1, "errors": serializer.errors},
+                return Response({"code": -1, "errors": serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             user = serializer.save()
@@ -136,38 +136,35 @@ class UserRegistrationView(generics.CreateAPIView):
             try:
                 sendRegistrationMail(user)
             except smtplib.SMTPException as e:
-                return Response({"msg": 0, "error": f"SMTP Error: {str(e)}"},
+                return Response({"code": 0, "error": f"SMTP Error: {str(e)}"},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
-                return Response({"msg": 0, "error": f"Unexpected email error: {str(e)}"},
+                return Response({"code": 0, "error": f"Unexpected email error: {str(e)}"},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({
-                "msg": 1,
-                "msg2": "Registration successful. Please check your email for the verification code to activate your account."
+                "code": 1,
+                "msg": "Registration successful. Please check your email for the verification code to activate your account."
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({"msg": 0, "error": str(e)},
+            return Response({"code": 0, "error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# class UserLoginView(generics.GenericAPIView):
-#     serializer_class = UserLoginSerializer
+
+# class BaseLoginView(generics.GenericAPIView):
 #     permission_classes = [AllowAny]
 
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-        
-#         email = serializer.validated_data.get('email')
-#         password = serializer.validated_data.get('password')
-        
+#     def authenticate_and_login(self, request, email, password, expected_role=None):
 #         user = authenticate(request, email=email, password=password)
         
 #         if user is not None:
 #             if not user.is_active:
 #                 return Response({'detail': 'Account not activated. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
-
+            
+#             if expected_role and user.role != expected_role:
+#                 return Response({'detail': f'Unauthorized: You do not have {expected_role} privileges.'}, status=status.HTTP_403_FORBIDDEN)
+            
 #             tokens = get_tokens_for_user(user)
 #             return Response({
 #                 'tokens': tokens, 
@@ -184,25 +181,43 @@ class BaseLoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def authenticate_and_login(self, request, email, password, expected_role=None):
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'code': 0, 'msg': 'Invalid email or password.'}, status=status.HTTP_200_OK)
+
+        if not user.is_active:
+            verification_code = get_random_string(length=6, allowed_chars='0123456789')
+            user.verification_code = verification_code
+            user.verification_code_expires_at = timezone.now() + timedelta(
+                minutes=getattr(settings, 'VERIFICATION_CODE_EXPIRY_MINUTES', 15)
+            )
+            user.save(update_fields=['verification_code', 'verification_code_expires_at'])
+            sendRegistrationMail(user)
+            return Response({'code': -1, 'msg': 'Account not verified. OTP resent to email.'}, status=status.HTTP_200_OK)
+
         user = authenticate(request, email=email, password=password)
-        
-        if user is not None:
-            if not user.is_active:
-                return Response({'detail': 'Account not activated. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            if expected_role and user.role != expected_role:
-                return Response({'detail': f'Unauthorized: You do not have {expected_role} privileges.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            tokens = get_tokens_for_user(user)
-            return Response({
-                'tokens': tokens, 
-                'user_id': user.id,
-                'email': user.email,
-                'role': user.role,
-                'msg': 'Login Successful'
-            }, status=status.HTTP_200_OK)
-        
-        return Response({'detail': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user is None:
+            return Response({'code': 0, 'msg': 'Invalid email or password.'}, status=status.HTTP_200_OK)
+
+        if not user.is_active:
+            return Response({'code': 0, 'msg': 'Account is inactive.'}, status=status.HTTP_200_OK)
+
+        if expected_role and user.role != expected_role:
+            return Response({'code': 0, 'msg': f'Unauthorized: You do not have {expected_role} privileges.'}, status=status.HTTP_200_OK)
+
+        tokens = get_tokens_for_user(user)
+        return Response({
+            'code': 1,
+            'tokens': tokens,
+            'user_id': user.id,
+            'email': user.email,
+            'role': user.role,
+            'msg': 'Login successful.'
+        }, status=status.HTTP_200_OK)
+
+
 
 class StudentLoginView(BaseLoginView):
     serializer_class = StudentLoginSerializer

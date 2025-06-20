@@ -107,7 +107,7 @@ def sendRegistrationMail(user):
     </head>
     <body>
     <div class="container">
-        <h1>Welcome to {app_name} 🎉</h1>
+        <h1>Welcome to {app_name} </h1>
         <p>Hi <span class="greeting-name">{user.email}</span>,</p>
         <p>Thank you for registering with {app_name}. To complete your account setup, use the verification code below:</p>
         
