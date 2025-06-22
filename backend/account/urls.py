@@ -11,6 +11,7 @@ from .views import (
     UserPasswordResetView,
     VerifyEmailView,
     GetSessionView,
+    ResendOTPView
 )
 
 
@@ -24,6 +25,7 @@ urlpatterns = [
     # Refister URLs
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('verify-email/', VerifyEmailView.as_view(), name='user-verify-email'),
+    path('resend-otp/', ResendOTPView.as_view(), name='resend-otp'),
 
     # Login Logout URLs
     path('login/student/', StudentLoginView.as_view(), name='student-login'), 

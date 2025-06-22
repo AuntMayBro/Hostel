@@ -85,11 +85,9 @@ class GetSessionView(APIView):
             if not access_token_string:
                 raise AuthenticationFailed("Access token missing or malformed in Authorization header.")
 
-        # Decode expiration
         access_exp = self._decode_token_expiration(access_token_string, "access")
         refresh_exp = self._decode_token_expiration(refresh_token_string, "refresh") if refresh_token_string else None
 
-        # Build response
         response_data = {
             "session": {
                 "user": {
@@ -151,6 +149,34 @@ class UserRegistrationView(generics.CreateAPIView):
             return Response({"code": 0, "error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ResendOTPView(APIView):
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+        verification_code = get_random_string(length=6, allowed_chars='0123456789')
+        user.verification_code = verification_code
+        user.verification_code_expires_at = timezone.now() + timedelta(
+            minutes=getattr(settings, 'VERIFICATION_CODE_EXPIRY_MINUTES', 15)
+        )
+        user.save(update_fields=['verification_code', 'verification_code_expires_at'])
+
+        try:
+            sendRegistrationMail(user)
+            return Response({"message": "OTP resent successfully."}, status=status.HTTP_200_OK)
+        except smtplib.SMTPException as e:
+            return Response({"code": 0, "error": f"SMTP Error: {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({"code": 0, "error": f"Unexpected email error: {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # class BaseLoginView(generics.GenericAPIView):
 #     permission_classes = [AllowAny]
